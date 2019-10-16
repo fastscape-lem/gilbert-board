@@ -11,79 +11,116 @@ from .buckets import Buckets
 
 class Board:
 
-    def __init__(self, scale=3):
+    def __init__(self, scale=3, buckets_height=150):
         self.scale = scale
+        self.buckets_height = buckets_height
 
         self.toposim = TopographySimulator()
         self.particles = Particles(self.toposim, scale)
         self.buckets = Buckets(self.particles, scale)
 
-        self.buckets_height = 150
-
-        canvas_size = (scale * self.toposim.shape[0],
-                       scale * self.toposim.shape[1] + self.buckets_height)
-
-        self.canvas = MultiCanvas(ncanvases=3, size=canvas_size)
-        self.canvas[0].scale(scale)
-        self.canvas[1].global_alpha = 0.4
-
-        self.start_button = Button(description="Start",
-                                   icon='play')
-        self.stop_button = Button(description="Stop/Reset",
-                                  icon='stop',
-                                  disabled=True)
-
-        self.start_button.on_click(self.start)
-        self.stop_button.on_click(self.stop)
-
-        slider_style = {'description_width': 'initial'}
-
-        self.n_particles_slider = IntSlider(
-            value=10000, min=500, max=15000, step=500,
-            description='Number of particles', style=slider_style
-        )
-        self.n_particles_slider.observe(self.on_change_n_particles,
-                                        names='value')
-
-        self.kf_slider = FloatSlider(
-            value=1e-4, min=5e-5, max=3e-4, step=1e-5,
-            description='River incision coefficient', style=slider_style,
-            readout_format='.2e'
-        )
-
-        self.g_slider = FloatSlider(
-            value=1., min=0.5, max=1.5, step=0.1,
-            description='River transport coefficient', style=slider_style,
-        )
-
-        self.kd_slider = FloatSlider(
-            value=0.02, min=0., max=0.1, step=0.01,
-            description='Hillslope diffusivity', style=slider_style,
-        )
-
-        self.p_slider = FloatSlider(
-            value=1., min=0., max=10., step=0.2,
-            description='Flow partition exponent', style=slider_style,
-        )
+        self.setup_canvas()
+        self.setup_play_widgets()
+        self.setup_particles_widgets()
+        self.setup_toposim_widgets()
+        self.setup_layout()
 
         self.process = None
         self._running = False
+
+    def setup_canvas(self):
+        # canvas 0: topography
+        # canvas 1: particles
+        # canvas 2: buckets
+
+        canvas_size = (
+            self.scale * self.toposim.shape[0],
+            self.scale * self.toposim.shape[1] + self.buckets_height
+        )
+
+        self.canvas = MultiCanvas(ncanvases=3, size=canvas_size)
+
+        self.canvas[1].global_alpha = 0.4
+
+    def setup_play_widgets(self):
+        self.play_widgets = {
+            'start': Button(description="Start", icon='play'),
+            'stop': Button(description="Stop/Reset", icon='stop',
+                           disabled=True)
+        }
+
+        self.play_widgets['start'].on_click(self.start)
+        self.play_widgets['stop'].on_click(self.stop)
+
+    def setup_particles_widgets(self):
+        slider_style = {'description_width': 'initial'}
+
+        self.particles_widgets = {
+            'size': IntSlider(
+                value=10000, min=500, max=15000, step=500,
+                description='Number of particles', style=slider_style
+            ),
+            'speed': FloatSlider(
+                value=0.5, min=0.1, max=1., step=0.1,
+                description='Particle "speed"', style=slider_style
+            )
+        }
+
+        self.particles_widgets['size'].observe(
+            self.on_change_n_particles, names='value'
+        )
 
     def on_change_n_particles(self, change):
         self.particles.n_particles = change.new
         self.initialize()
 
-    def toggle_disabled(self):
-        widgets = [self.start_button,
-                   self.stop_button,
-                   self.n_particles_slider,
-                   self.kf_slider,
-                   self.g_slider,
-                   self.kd_slider,
-                   self.p_slider]
+    def setup_toposim_widgets(self):
+        slider_style = {'description_width': 'initial'}
 
-        for w in widgets:
-            w.disabled = not w.disabled
+        self.toposim_widgets = {
+            'kf': FloatSlider(
+                value=1e-4, min=5e-5, max=3e-4, step=1e-5,
+                description='River incision coefficient', style=slider_style,
+                readout_format='.2e'
+            ),
+            'g': FloatSlider(
+                value=1., min=0.5, max=1.5, step=0.1,
+                description='River transport coefficient', style=slider_style,
+            ),
+            'kd': FloatSlider(
+                value=0.02, min=0., max=0.1, step=0.01,
+                description='Hillslope diffusivity', style=slider_style,
+            ),
+            'p': FloatSlider(
+                value=1., min=0., max=10., step=0.2,
+                description='Flow partition exponent', style=slider_style,
+            )
+        }
+
+    def set_erosion_params(self):
+        self.toposim.set_erosion_params(
+            kf=self.toposim_widgets['kf'].value,
+            g=self.toposim_widgets['g'].value,
+            kd=self.toposim_widgets['kd'].value,
+            p=self.toposim_widgets['p'].value
+        )
+
+    def setup_layout(self):
+        play_box = HBox(tuple(self.play_widgets.values()))
+
+        for w in self.particles_widgets.values():
+            w.layout = Layout(width='400px')
+
+        for w in self.toposim_widgets.values():
+            w.layout = Layout(width='400px')
+
+        control_box = VBox([play_box] +
+                           list(self.particles_widgets.values()) +
+                           list(self.toposim_widgets.values()))
+        control_box.layout = Layout(grid_gap='10px')
+
+        self.main_box = HBox((self.canvas, control_box))
+        self.main_box.layout = Layout(grid_gap='30px')
 
     def initialize(self):
         self.toposim.initialize()
@@ -106,16 +143,18 @@ class Board:
             self.buckets.run_step()
             self.draw_buckets()
 
-        self.stop_button.description = "Reset"
-        self.stop_button.icon = "retweet"
+        self.play_widgets['stop'].description = "Reset"
+        self.play_widgets['stop'].icon = "retweet"
 
-    def set_erosion_params(self):
-        self.toposim.set_erosion_params(
-            kf=self.kf_slider.value,
-            g=self.g_slider.value,
-            kd=self.kd_slider.value,
-            p=self.p_slider.value
-        )
+    def toggle_disabled(self):
+        for w in self.play_widgets.values():
+            w.disabled = not w.disabled
+
+        for w in self.particles_widgets.values():
+            w.disabled = not w.disabled
+
+        for w in self.toposim_widgets.values():
+            w.disabled = not w.disabled
 
     def start(self, b):
         self.process = Thread(target=self.run)
@@ -140,15 +179,18 @@ class Board:
         self.buckets.reset()
         self.draw_buckets()
 
-        self.stop_button.description = "Stop/Reset"
-        self.stop_button.icon = "stop"
+        self.play_widgets['stop'].description = "Stop/Reset"
+        self.play_widgets['stop'].icon = "stop"
 
     def draw_topography(self):
         with hold_canvas(self.canvas[0]):
+            self.canvas[0].save()
             self.canvas[0].clear()
+            self.canvas[0].scale(self.scale)
             self.canvas[0].put_image_data(
                 self.toposim.shaded_topography, 0, 0
             )
+            self.canvas[0].restore()
 
     def draw_particles(self):
         x, y = self.particles.positions
@@ -197,21 +239,4 @@ class Board:
     def show(self):
         self.initialize()
 
-        play_box = HBox((self.start_button, self.stop_button))
-
-        sliders = [self.n_particles_slider,
-                   self.kf_slider,
-                   self.g_slider,
-                   self.kd_slider,
-                   self.p_slider]
-
-        for s in sliders:
-            s.layout = Layout(width='400px')
-
-        control_box = VBox([play_box] + sliders)
-        control_box.layout = Layout(grid_gap='10px')
-
-        main_box = HBox((self.canvas, control_box))
-        main_box.layout = Layout(grid_gap='30px')
-
-        return main_box
+        return self.main_box

@@ -93,19 +93,22 @@ class Board:
         self.toposim_widgets = {
             'kf': FloatSlider(
                 value=1e-4, min=5e-5, max=3e-4, step=1e-5,
-                readout_format='.2e'
+                readout_format='.1e'
             ),
             'g': FloatSlider(
                 value=1., min=0.5, max=1.5, step=0.1,
+                readout_format='.1f'
             ),
             'kd': FloatSlider(
                 value=0.02, min=0., max=0.1, step=0.01,
             ),
             'p': FloatSlider(
                 value=1., min=0., max=10., step=0.2,
+                readout_format='.1f'
             ),
             'u': FloatSlider(
-                value=0., min=0., max=0.1, step=0.01,
+                value=0., min=0., max=1e-3, step=1e-5,
+                readout_format='.1e'
             )
         }
 

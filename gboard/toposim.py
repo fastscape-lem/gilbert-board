@@ -40,7 +40,7 @@ class TopographySimulator:
         scarp_row_idx = self.shape[0] // 2
         ua = np.zeros_like(self.topography)
         ua[:scarp_row_idx, :] = u
-        fs.fastscapecontext.u = ua
+        fs.fastscape_set_u(ua)
 
     def initialize(self):
         self.step = 0
@@ -95,10 +95,12 @@ class TopographySimulator:
 
         ls = LightSource(*self.get_sun_light())
 
+        vmax=max(1200, self.topography.max())
+
         rgb = ls.shade(
             self.topography, cmap=self.cmap,
             blend_mode='overlay', vert_exag=4,
-            dx=dx, dy=dy, vmin=-300, vmax=1200
+            dx=dx, dy=dy, vmin=-300, vmax=vmax
         )
 
         return rgb * 255

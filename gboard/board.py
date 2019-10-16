@@ -100,6 +100,10 @@ class Board:
             'p': FloatSlider(
                 value=1., min=0., max=10., step=0.2,
                 description='Flow partition exponent', style=slider_style,
+            ),
+            'u': FloatSlider(
+                value=0., min=0., max=0.1, step=0.01,
+                description='Plateau uplift rate', style=slider_style,
             )
         }
 
@@ -108,7 +112,8 @@ class Board:
             kf=self.toposim_widgets['kf'].value,
             g=self.toposim_widgets['g'].value,
             kd=self.toposim_widgets['kd'].value,
-            p=self.toposim_widgets['p'].value
+            p=self.toposim_widgets['p'].value,
+            u=self.toposim_widgets['u'].value
         )
 
     def setup_layout(self):

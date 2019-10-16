@@ -27,7 +27,7 @@ class TopographySimulator:
 
         return azdeg, altdeg
 
-    def set_erosion_params(self, kf=1e-4, kd=1e-2, g=1., p=1.):
+    def set_erosion_params(self, kf=1e-4, kd=1e-2, g=1., p=1., u=0.):
         kfa = np.full(self.topography.size, kf)
         kda = np.full(self.topography.size, kd)
 
@@ -35,6 +35,12 @@ class TopographySimulator:
             kfa, kf, 0.4, 1.,
             kda, kd, g, g, p
         )
+
+        # plateau uplift
+        scarp_row_idx = self.shape[0] // 2
+        ua = np.zeros_like(self.topography)
+        ua[:scarp_row_idx, :] = u
+        fs.fastscapecontext.u = ua
 
     def initialize(self):
         self.step = 0

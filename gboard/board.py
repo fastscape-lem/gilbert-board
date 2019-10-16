@@ -24,8 +24,7 @@ class Board:
                        scale * self.toposim.shape[1] + self.buckets_height)
 
         self.canvas = MultiCanvas(ncanvases=3, size=canvas_size)
-        self.canvas[0].scale(scale)
-        self.canvas[1].global_alpha = 0.4
+        self.canvas.on_client_ready(self.redraw)
 
         self.start_button = Button(description="Start",
                                    icon='play')
@@ -87,24 +86,18 @@ class Board:
 
     def initialize(self):
         self.toposim.initialize()
-        self.draw_topography()
-
         self.particles.initialize()
-        self.draw_particles()
-
         self.buckets.initialize()
-        self.draw_buckets()
+
+        self.redraw()
 
     def run(self):
         while self._running and not self.buckets.all_in_buckets:
             self.toposim.run_step()
-            self.draw_topography()
-
             self.particles.run_step()
-            self.draw_particles()
-
             self.buckets.run_step()
-            self.draw_buckets()
+
+            self.redraw()
 
         self.stop_button.description = "Reset"
         self.stop_button.icon = "retweet"
@@ -132,29 +125,35 @@ class Board:
 
     def reset(self):
         self.toposim.reset()
-        self.draw_topography()
-
         self.particles.reset()
-        self.draw_particles()
-
         self.buckets.reset()
-        self.draw_buckets()
+
+        self.redraw()
 
         self.stop_button.description = "Stop/Reset"
         self.stop_button.icon = "stop"
 
+    def redraw(self):
+        self.draw_topography()
+        self.draw_particles()
+        self.draw_buckets()
+
     def draw_topography(self):
         with hold_canvas(self.canvas[0]):
+            self.canvas[0].save()
+            self.canvas[0].scale(self.scale)
             self.canvas[0].clear()
             self.canvas[0].put_image_data(
                 self.toposim.shaded_topography, 0, 0
             )
+            self.canvas[0].restore()
 
     def draw_particles(self):
         x, y = self.particles.positions
 
         with hold_canvas(self.canvas[1]):
             self.canvas[1].clear()
+            self.canvas[1].global_alpha = 0.4
             self.canvas[1].fill_style = '#3378b8'
             self.canvas[1].fill_rects(x, y, self.particles.sizes)
 

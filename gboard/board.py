@@ -195,8 +195,8 @@ class Board:
         for w in self.play_widgets.values():
             w.disabled = not w.disabled
 
-        for w in self.particles_widgets.values():
-            w.disabled = not w.disabled
+        w = self.particles_widgets['size']
+        w.disabled = not w.disabled
 
     def start(self, b):
         self.process = Thread(target=self.run)

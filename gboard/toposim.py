@@ -58,14 +58,29 @@ class TopographySimulator:
 
         self.receivers = np.arange(self.topography.size).reshape(self.shape)
 
+    def set_receivers(self):
+        weights = fs.fastscapecontext.mwrec
+        mrec = fs.fastscapecontext.mrec.astype('int') - 1
+
+        cum_weights = np.cumsum(weights, axis=0)
+        rand = np.random.uniform(size=self.topography.size)
+        rec_idx = np.argmax(cum_weights >= rand, axis=0)
+        rec = mrec[rec_idx, range(self.topography.size)]
+
+        # base level
+        srec = fs.fastscapecontext.rec.astype('int') - 1
+        at_base_level = np.argwhere(srec == np.arange(self.topography.size))
+        rec[at_base_level] = srec[at_base_level]
+
+        self.receivers = rec.reshape(self.shape, order='F')
+
     def run_step(self):
         self.step += 1
 
         fs.fastscape_execute_step()
         self.topography = fs.fastscapecontext.h.reshape(self.shape, order='F')
 
-        rec = fs.fastscapecontext.rec.astype('int') - 1
-        self.receivers = rec.reshape(self.shape, order='F')
+        self.set_receivers()
 
     @property
     def shaded_topography(self):

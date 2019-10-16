@@ -62,7 +62,7 @@ class Board:
         )
 
         self.p_slider = FloatSlider(
-            value=1., min=0.2, max=10, step=0.2,
+            value=1., min=0., max=10., step=0.2,
             description='Flow partition exponent', style=slider_style,
         )
 

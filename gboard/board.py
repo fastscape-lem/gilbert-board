@@ -67,12 +67,18 @@ class Board:
         }
 
         self.particles_widgets['size'].observe(
-            self.on_change_n_particles, names='value'
+            self.on_change_size, names='value'
+        )
+        self.particles_widgets['speed'].observe(
+            self.on_change_speed, names='value'
         )
 
-    def on_change_n_particles(self, change):
+    def on_change_size(self, change):
         self.particles.n_particles = change.new
         self.initialize()
+
+    def on_change_speed(self, change):
+        self.particles.speed_factor = change.new
 
     def setup_toposim_widgets(self):
         slider_style = {'description_width': 'initial'}

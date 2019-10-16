@@ -3,11 +3,12 @@ import numpy as np
 
 class Particles:
 
-    def __init__(self, toposim, scale, n_particles=15000):
+    def __init__(self, toposim, scale, n_particles=15000, speed_factor=0.5):
         self.n_particles = n_particles
         self.toposim = toposim
         self.shape = toposim.shape
         self.scale = scale
+        self.speed_factor = speed_factor
 
         self.sizes = np.random.randint(2, 6, n_particles)
 
@@ -22,7 +23,7 @@ class Particles:
         sel = self.toposim.receivers[self.row_idx, self.col_idx].ravel()
 
         # slower the evolution, particles don't always move
-        n = self.n_particles // 2
+        n = int(self.n_particles * self.speed_factor)
         pidx = np.arange(self.n_particles)
         np.random.shuffle(pidx)
         move_idx = pidx[0:n]

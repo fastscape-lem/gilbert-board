@@ -21,8 +21,9 @@ class TopographySimulator:
     def get_sun_light(self):
         t = self.step + self.cycle_start * self.cycle_length
 
-        azdeg = 365 * (-t % self.cycle_length) / self.cycle_length
-        altdeg = 70 * abs(math.sin(t * math.pi / self.cycle_length))
+        azdeg = 365 * (t % self.cycle_length) / self.cycle_length
+        altdeg = max(140 * abs(math.sin(t * math.pi / self.cycle_length)) - 70,
+                     0)
 
         return azdeg, altdeg
 

@@ -184,6 +184,7 @@ class Board:
             self.buckets.run_step()
             self.draw_buckets()
 
+        self.draw_winner()
         self.play_widgets['stop'].description = "Reset"
         self.play_widgets['stop'].icon = "retweet"
 
@@ -244,6 +245,7 @@ class Board:
             self.canvas[2].clear()
 
             self.canvas[2].font = '20px serif'
+            self.canvas[2].fill_style = 'black'
 
             for i, x in enumerate(self.buckets.x_separators[0:-1]):
                 k = i + 1
@@ -254,7 +256,6 @@ class Board:
 
                 self.canvas[2].fill_text(str_k, x + 15, ysize - 120)
 
-            self.canvas[2].fill_style = 'black'
             self.canvas[2].fill_rects(
                 self.buckets.x_separators,
                 self.toposim.shape[0] * self.scale,
@@ -272,6 +273,15 @@ class Board:
             self.canvas[2].fill_style = 'black'
             self.canvas[2].fill_rect(0, ysize - 3, xsize, 3)
             self.canvas[2].fill_rect(0, ysize - 155, xsize, 10)
+
+    def draw_winner(self):
+        xsize, ysize = self.canvas[2].size
+
+        winner = self.buckets.count.argmax() + 1
+
+        self.canvas[2].font = '50px serif'
+        self.canvas[2].fill_style = '#3378b8'
+        self.canvas[2].fill_text(f"{winner} wins!", xsize // 3 , ysize // 2.5)
 
     def show(self):
         self.initialize()

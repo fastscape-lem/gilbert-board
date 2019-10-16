@@ -140,6 +140,8 @@ class Board:
 
     def run(self):
         while self._running and not self.buckets.all_in_buckets:
+            self.set_erosion_params()
+
             self.toposim.run_step()
             self.draw_topography()
 
@@ -159,12 +161,8 @@ class Board:
         for w in self.particles_widgets.values():
             w.disabled = not w.disabled
 
-        for w in self.toposim_widgets.values():
-            w.disabled = not w.disabled
-
     def start(self, b):
         self.process = Thread(target=self.run)
-        self.set_erosion_params()
         self._running = True
         self.process.start()
         self.toggle_disabled()

@@ -1,7 +1,7 @@
 from threading import Thread
 
 from ipycanvas import MultiCanvas, hold_canvas
-from ipywidgets import (Button, FloatSlider, IntSlider,
+from ipywidgets import (Button, FloatSlider, IntSlider, HTML, Label,
                         HBox, VBox, Layout)
 
 from .toposim import TopographySimulator
@@ -53,16 +53,17 @@ class Board:
         self.play_widgets['stop'].on_click(self.stop)
 
     def setup_particles_widgets(self):
-        slider_style = {'description_width': 'initial'}
+        self.particles_labels = {
+            'size': Label(value='Number of particles'),
+            'speed': Label(value='Particle "speed"')
+        }
 
         self.particles_widgets = {
             'size': IntSlider(
-                value=10000, min=500, max=15000, step=500,
-                description='Number of particles', style=slider_style
+                value=10000, min=500, max=15000, step=500
             ),
             'speed': FloatSlider(
-                value=0.5, min=0.1, max=1., step=0.1,
-                description='Particle "speed"', style=slider_style
+                value=0.5, min=0.1, max=1., step=0.1
             )
         }
 
@@ -81,29 +82,30 @@ class Board:
         self.particles.speed_factor = change.new
 
     def setup_toposim_widgets(self):
-        slider_style = {'description_width': 'initial'}
+        self.toposim_labels = {
+            'kf': Label(value='River incision coefficient'),
+            'g': Label(value='River transport coefficient'),
+            'kd': Label(value='Hillslope diffusivity'),
+            'p': Label(value='Flow partition exponent'),
+            'u': Label(value='Plateau uplift rate')
+        }
 
         self.toposim_widgets = {
             'kf': FloatSlider(
                 value=1e-4, min=5e-5, max=3e-4, step=1e-5,
-                description='River incision coefficient', style=slider_style,
                 readout_format='.2e'
             ),
             'g': FloatSlider(
                 value=1., min=0.5, max=1.5, step=0.1,
-                description='River transport coefficient', style=slider_style,
             ),
             'kd': FloatSlider(
                 value=0.02, min=0., max=0.1, step=0.01,
-                description='Hillslope diffusivity', style=slider_style,
             ),
             'p': FloatSlider(
                 value=1., min=0., max=10., step=0.2,
-                description='Flow partition exponent', style=slider_style,
             ),
             'u': FloatSlider(
                 value=0., min=0., max=0.1, step=0.01,
-                description='Plateau uplift rate', style=slider_style,
             )
         }
 
@@ -119,15 +121,41 @@ class Board:
     def setup_layout(self):
         play_box = HBox(tuple(self.play_widgets.values()))
 
-        for w in self.particles_widgets.values():
-            w.layout = Layout(width='400px')
+        particles_hboxes = []
+        for k in self.particles_widgets:
+            self.particles_labels[k].layout = Layout(width='200px')
+            self.particles_widgets[k].layout = Layout(width='200px')
 
-        for w in self.toposim_widgets.values():
-            w.layout = Layout(width='400px')
+            particles_hboxes.append(
+                HBox([self.particles_labels[k], self.particles_widgets[k]])
+            )
 
-        control_box = VBox([play_box] +
-                           list(self.particles_widgets.values()) +
-                           list(self.toposim_widgets.values()))
+        particles_label = HTML(value='<b>Particles parameters</b>')
+        particles_box = VBox(particles_hboxes)
+        particles_box.layout = Layout(grid_gap='6px')
+
+        toposim_hboxes = []
+        for k in self.toposim_widgets:
+            self.toposim_labels[k].layout = Layout(width='200px')
+            self.toposim_widgets[k].layout = Layout(width='200px')
+
+            toposim_hboxes.append(
+                HBox([self.toposim_labels[k], self.toposim_widgets[k]])
+            )
+
+        toposim_label = HTML(
+            value='<b>Landscape evolution model parameters</b>'
+        )
+        toposim_box = VBox(toposim_hboxes)
+        toposim_box.layout = Layout(grid_gap='6px')
+
+        control_box = VBox((
+            play_box,
+            particles_label,
+            particles_box,
+            toposim_label,
+            toposim_box
+        ))
         control_box.layout = Layout(grid_gap='10px')
 
         self.main_box = HBox((self.canvas, control_box))

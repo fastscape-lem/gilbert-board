@@ -31,5 +31,5 @@ a new tab in your browser.
 Alternatively, you can run the `voilà` dashboard:
 
 ```
-    $ voila gilbert_board.ipynb
+    $ voila gilbert_board.ipynb --enable_nbextensions=True
 ```

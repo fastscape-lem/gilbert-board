@@ -247,13 +247,7 @@ class Board:
             self.canvas[2].fill_style = 'black'
 
             for i, x in enumerate(self.buckets.x_separators[0:-1]):
-                k = i + 1
-                if k < 10:
-                    str_k = f'0{k}'
-                else:
-                    str_k = str(k)
-
-                self.canvas[2].fill_text(str_k, x + 15, ysize - 120)
+                self.canvas[2].fill_text(f"{i+1:02d}", x + 15, ysize - 120)
 
             self.canvas[2].fill_rects(
                 self.buckets.x_separators,
@@ -276,11 +270,12 @@ class Board:
     def draw_winner(self):
         xsize, ysize = self.canvas[2].size
 
-        winner = self.buckets.count.argmax() + 1
+        winner = self.buckets.count.argmax()
 
         self.canvas[2].font = '50px serif'
         self.canvas[2].fill_style = '#3378b8'
-        self.canvas[2].fill_text(f"{winner} wins!", xsize // 3 , ysize // 2.5)
+        self.canvas[2].fill_text(f"{winner+1:02d} wins!",
+                                 xsize // 3 , ysize // 2.5)
 
     def show(self):
         self.initialize()

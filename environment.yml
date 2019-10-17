@@ -10,5 +10,5 @@ dependencies:
   - ipykernel
   - matplotlib
   - ipywidgets
-  - ipycanvas
+  - ipycanvas>=0.3.3
   - voila

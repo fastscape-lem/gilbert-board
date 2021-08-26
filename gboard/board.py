@@ -33,12 +33,11 @@ class Board:
         # canvas 1: particles
         # canvas 2: buckets
 
-        canvas_size = (
-            self.scale * self.toposim.shape[0],
-            self.scale * self.toposim.shape[1] + self.buckets_height
+        self.canvas = MultiCanvas(
+            ncanvases=3,
+            width=self.scale * self.toposim.shape[0],
+            height=self.scale * self.toposim.shape[1] + self.buckets_height
         )
-
-        self.canvas = MultiCanvas(ncanvases=3, size=canvas_size)
         self.canvas.on_client_ready(self.redraw)
 
     def setup_play_widgets(self):
@@ -238,7 +237,7 @@ class Board:
             self.canvas[1].fill_rects(x, y, self.particles.sizes)
 
     def draw_buckets(self):
-        xsize, ysize = self.canvas[2].size
+        xsize, ysize = self.canvas[2].width, self.canvas[2].height
 
         with hold_canvas(self.canvas[2]):
             self.canvas[2].clear()
@@ -268,7 +267,7 @@ class Board:
             self.canvas[2].fill_rect(0, ysize - 155, xsize, 10)
 
     def draw_winner(self):
-        xsize, ysize = self.canvas[2].size
+        xsize, ysize = self.canvas[2].width, self.canvas[2].height
 
         winner = self.buckets.count.argmax()
 
